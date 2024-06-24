@@ -17,6 +17,10 @@
             flex-direction: column;
             justify-content: space-between;
             min-height: 100vh;
+            background-image: url('https://i.pinimg.com/originals/a7/7b/e2/a77be2be9b6af1134d85d2139beee3c0.gif'); /* Ссылка на гифку */
+            background-size: cover; /* Масштабирование фонового изображения */
+            background-position: center; /* Центрирование фонового изображения */
+            background-repeat: no-repeat; /* Запрет на повторение фонового изображения */
         }
 
         a {
@@ -48,7 +52,7 @@
         }
 
         #farmingButton {
-            width: 100%;
+            width: calc(100% - 40px); /* Уменьшение ширины на 40px для учета отступов */
             padding: 15px 20px;
             font-size: 18px;
             font-family: 'Orbitron', sans-serif; /* Космический шрифт */
@@ -58,6 +62,7 @@
             border-radius: 15px; /* Слегка закругленные углы */
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.3s ease;
+            margin: 10px 20px; /* Отступы: сверху 10px, справа 20px, снизу 10px, слева 20px */
         }
 
         #farmingButton.green {
@@ -72,15 +77,21 @@
 
         footer {
             display: flex;
-            justify-content: space-around;
+            flex-direction: column;
+            align-items: center;
             padding: 10px 0;
             background-color: #1a1a1a; /* Тёмный фон */
             border-top: 1px solid #333; /* Цвет верхней границы */
             margin-top: auto; /* Привязка к нижней части экрана */
-            margin-bottom: 20px; /* Небольшой отступ снизу */
         }
 
-        footer button {
+        .footer-buttons {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+        }
+
+        .footer-buttons button {
             background: none;
             border: none;
             font-size: 16px;
@@ -91,7 +102,7 @@
             flex: 1; /* Распределение кнопок по всей ширине */
         }
 
-        footer button img {
+        .footer-buttons button img {
             width: 24px;
             height: 24px;
             margin-bottom: 5px;
@@ -112,70 +123,86 @@
 
         <script src="https://telegram.org/js/telegram-web-app.js"></script>
         <script>
-            // Init TWA
             Telegram.WebApp.ready();
 
-            // Event occurs whenever theme settings are changed in the user's Telegram app (including switching to night mode).
             Telegram.WebApp.onEvent('themeChanged', function() {
                 document.documentElement.className = Telegram.WebApp.colorScheme;
             });
 
             let counter = 0;
-            let interval;
 
-            function startFarming() {
-                const farmingButton = document.getElementById('farmingButton');
-
-                if (counter === 50) {
-                    resetFarming();
-                    return;
-                }
-
-                if (farmingButton.textContent === 'Claim') {
-                    resetFarming();
-                    return;
-                }
-
-                farmingButton.disabled = true;
-                interval = setInterval(() => {
-                    counter = parseFloat((counter + 0.01).toFixed(2));
-                    farmingButton.textContent = `Start Farming: ${counter.toFixed(2)} method`;
-
-                    if (counter >= 50) {
-                        clearInterval(interval);
-                        farmingButton.textContent = 'Claim';
-                        farmingButton.classList.add('green');
-                        farmingButton.disabled = false;
-                    }
-                }, 1000);
+            async function getData() {
+                const response = await fetch('http://localhost:3000/data');
+                const data = await response.json();
+                return data;
             }
 
-            function resetFarming() {
+            async function updateData(counter, farming) {
+                await fetch('http://localhost:3000/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ counter, farming })
+                });
+            }
+
+            async function startFarming() {
+                const farmingButton = document.getElementById('farmingButton');
+                farmingButton.disabled = true;
+                await updateData(counter, true);
+            }
+
+            async function resetFarming() {
                 counter = 0;
                 const farmingButton = document.getElementById('farmingButton');
                 farmingButton.textContent = 'Start Farming';
                 farmingButton.classList.remove('green');
+                farmingButton.disabled = false;
+                await updateData(counter, false);
             }
+
+            async function updateUI() {
+                const data = await getData();
+                counter = data.counter;
+                const farmingButton = document.getElementById('farmingButton');
+                if (counter >= 50) {
+                    farmingButton.textContent = 'Claim';
+                    farmingButton.classList.add('green');
+                    farmingButton.disabled = false;
+                } else if (data.farming) {
+                    farmingButton.textContent = `Start Farming: ${counter.toFixed(2)} method`;
+                    farmingButton.disabled = true;
+                } else {
+                    farmingButton.textContent = 'Start Farming';
+                    farmingButton.classList.remove('green');
+                    farmingButton.disabled = false;
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                await updateUI();
+                setInterval(updateUI, 1000);
+            });
         </script>
     </main>
 
-    <div class="container">
-        <button id="farmingButton" onclick="startFarming()">Start Farming</button>
-    </div>
-
     <footer>
-        <button onclick="alert('Home clicked!')">
-            <img src="https://i.imgur.com/Y9FEIUS.png" alt="Home">
-            Home
-        </button>
-        <button onclick="alert('Task clicked!')">
-            <img src="https://i.imgur.com/STN1RIF.png" alt="Task">
-            Task
-        </button>
-        <button onclick="alert('Friends clicked!')">
-            <img src="https://i.imgur.com/Cz5VhDN.png" alt="Friends">
-            Friends
-        </button>
+        <button id="farmingButton" onclick="startFarming()">Start Farming</button>
+        <div class="footer-buttons">
+            <button onclick="alert('Home clicked!')">
+                <img src="https://i.imgur.com/Y9FEIUS.png" alt="Home">
+                Home
+            </button>
+            <button onclick="alert('Task clicked!')">
+                <img src="https://i.imgur.com/STN1RIF.png" alt="Task">
+                Task
+            </button>
+            <button onclick="alert('Friends clicked!')">
+                <img src="https://i.imgur.com/Cz5VhDN.png" alt="Friends">
+                Friends
+            </button>
+        </div>
     </footer>
 </body>
 </html>
