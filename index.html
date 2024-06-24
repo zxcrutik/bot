@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Mini Apps Vanilla JS Sample App</title>
     <style>
         body {
@@ -11,14 +10,19 @@
             font: 12px/18px "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--tg-theme-text-color);
-            margin: 48px 24px;
+            margin: 0;
             padding: 0;
             color-scheme: var(--tg-color-scheme);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 100vh;
         }
 
         a {
             color: var(--tg-theme-link-color);
         }
+
         #viewport {
             position: fixed;
             left: 0;
@@ -28,6 +32,7 @@
             pointer-events: none;
             transition: all .2s ease;
         }
+
         #viewport:after {
             content: '';
             display: block;
@@ -53,110 +58,209 @@
             padding: 4px;
             vertical-align: top;
         }
+
         #viewport-params-size {
             top: 4px;
         }
+
         #viewport-params-expand {
             top: 30px;
         }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            font-family: 'Orbitron', sans-serif; /* Космический шрифт */
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .header img {
+            width: 50px; /* Размер логотипа */
+            height: auto;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            margin-bottom: 20px; /* Отступ между кнопкой и футером */
+        }
+
+        #farmingButton {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-family: 'Orbitron', sans-serif; /* Космический шрифт */
+            background-color: #1a1a1a; /* Тёмный фон */
+            color: #ffffff; /* Белый текст */
+            border: none;
+            border-radius: 15px; /* Слегка закругленные углы */
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        #farmingButton.green {
+            background-color: green;
+            color: white;
+        }
+
+        #farmingButton:hover {
+            background-color: #333;
+            transform: scale(1.05);
+        }
+
+        footer {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            background-color: #1a1a1a; /* Тёмный фон */
+            border-top: 1px solid #333; /* Цвет верхней границы */
+            margin-top: auto; /* Привязка к нижней части экрана */
+            margin-bottom: 20px; /* Небольшой отступ снизу */
+        }
+
+        footer button {
+            background: none;
+            border: none;
+            font-size: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #ddd; /* Цвет текста */
+            flex: 1; /* Распределение кнопок по всей ширине */
+        }
+
+        footer button img {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
-
 <body>
     <main>
         <div align="center">
-            <a href="https://ton.org/"><img width="48" src="./assets/tapps.png" alt="logo of telegram web apps"></a>
+            <a href="https://ton.org/"><img width="100%" src="https://i.imgur.com/EhLZvNk.png" height="108"  alt="logo of telegram web apps"></a>
         </div>
-        <h1>Modals</h1>
-        <button onclick="Telegram.WebApp.showAlert('Hello World!');">Launch Alert</button>
-        <button onclick="showPopup();">Launch Popup</button>
 
-        <h1>Links</h1>
-        <ul>
-            <li>
-                <a href="javascript:Telegram.WebApp.openTelegramLink('https://t.me/trendingapps');">Open link within Telegram</a>
-            </li>
-            <li>
-                <a href="javascript:Telegram.WebApp.openLink('https://ton.org/');">Open link in external browser</a>
-            </li>
-            <li>
-                <a href="javascript:Telegram.WebApp.openLink('https://telegra.ph/api',{try_instant_view:true});">Open link inside Telegram webview</a>
-            </li>
-        </ul>
+        <div class="header">
+            <h2>
+                
+                <img src="https://i.imgur.com/KWAkd6M.png" alt="Logo">
+            </h2>
+        </div>
+        
+        <div id="viewport"></div>
+        <div id="viewport-params-size"></div>
+        <div id="viewport-params-expand"></div>
 
-        <h1>Buttons</h1>
-        <button onclick="Telegram.WebApp.expand();">Expand Webview</button>
-        <button onclick="toggleMainButton();">Toggle Main Button</button>
-    </main>
-    <div id="viewport"></div>
-    <div id="viewport-params-size"></div>
-    <div id="viewport-params-expand"></div>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-        // Init TWA
-        Telegram.WebApp.ready();
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        <script>
+            // Init TWA
+            Telegram.WebApp.ready();
 
-        // Event occurs whenever theme settings are changed in the user's Telegram app (including switching to night mode).
-        Telegram.WebApp.onEvent('themeChanged', function() {
-            document.documentElement.className = Telegram.WebApp.colorScheme;
-        });
-
-        // Show main button
-        Telegram.WebApp.MainButton.setParams({
-            text: 'Main Button'
-        });
-        Telegram.WebApp.MainButton.onClick(function () {
-            Telegram.WebApp.showAlert('Main Button was clicked')
-        });	
-        Telegram.WebApp.MainButton.show();
-
-        // Function to call showPopup API
-        function showPopup() {
-            Telegram.WebApp.showPopup({
-                title: 'Title',
-                message: 'Some message',
-                buttons: [
-                    {id: 'link', type: 'default', text: 'Open ton.org'},
-                    {type: 'cancel'},
-                ]
-            }, function(btn) {
-                if (btn === 'link') {
-                    Telegram.WebApp.openLink('https://ton.org/');
-                }
+            // Event occurs whenever theme settings are changed in the user's Telegram app (including switching to night mode).
+            Telegram.WebApp.onEvent('themeChanged', function() {
+                document.documentElement.className = Telegram.WebApp.colorScheme;
             });
-        };
 
-        // Function to toggle main TWA button
-        function toggleMainButton() {
-            if (Telegram.WebApp.MainButton.isVisible) {
-                Telegram.WebApp.MainButton.hide();
-            } else {
-                Telegram.WebApp.MainButton.show();
+            // Show main button
+            Telegram.WebApp.MainButton.setParams({
+                text: 'Main Button'
+            });
+
+            Telegram.WebApp.MainButton.onClick(function () {
+                Telegram.WebApp.showAlert('Main Button was clicked');
+            });
+
+            Telegram.WebApp.MainButton.show();
+
+            // Function to toggle main TWA button
+            function toggleMainButton() {
+                if (Telegram.WebApp.MainButton.isVisible) {
+                    Telegram.WebApp.MainButton.hide();
+                } else {
+                    Telegram.WebApp.MainButton.show();
+                }
             }
-        };
 
-        function setViewportData() {
-            var sizeEl = document.getElementById('viewport-params-size');
-            sizeEl.innerText = 'width: ' + window.innerWidth + ' x ' + 
-                'height: ' + Telegram.WebApp.viewportStableHeight;
+            function setViewportData() {
+                var sizeEl = document.getElementById('viewport-params-size');
+                sizeEl.innerText = 'width: ' + window.innerWidth + ' x ' + 
+                    'height: ' + Telegram.WebApp.viewportStableHeight;
 
-            var expandEl = document.querySelector('#viewport-params-expand');
-            expandEl.innerText = 'Is Expanded: ' + (Telegram.WebApp.isExpanded ? 'true' : 'false');
-        }
+                var expandEl = document.querySelector('#viewport-params-expand');
+                expandEl.innerText = 'Is Expanded: ' + (Telegram.WebApp.isExpanded ? 'true' : 'false');
+            }
 
-        Telegram.WebApp.setHeaderColor('secondary_bg_color');
+            Telegram.WebApp.setHeaderColor('secondary_bg_color');
 
-        setViewportData();
-        Telegram.WebApp.onEvent('viewportChanged', setViewportData);
+            setViewportData();
+            Telegram.WebApp.onEvent('viewportChanged', setViewportData);
 
-        Telegram.WebApp.onEvent('themeChanged', function() {
-            document.body.setAttribute('style', '--bg-color:' + Telegram.WebApp.backgroundColor);
-        });
+            Telegram.WebApp.onEvent('themeChanged', function() {
+                document.body.setAttribute('style', '--bg-color:' + Telegram.WebApp.backgroundColor);
+            });
 
-    </script>
+            let counter = 0;
+            let interval;
 
-    <!-- Eruda is console for mobile browsers -->
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
+            function startFarming() {
+                const farmingButton = document.getElementById('farmingButton');
+
+                if (counter === 50) {
+                    resetFarming();
+                    return;
+                }
+
+                if (farmingButton.textContent === 'Claim') {
+                    resetFarming();
+                    return;
+                }
+
+                farmingButton.disabled = true;
+                interval = setInterval(() => {
+                    counter = parseFloat((counter + 0.01).toFixed(2));
+                    farmingButton.textContent = `Farming: ${counter.toFixed(2)} method`;
+
+                    if (counter >= 50) {
+                        clearInterval(interval);
+                        farmingButton.textContent = 'Claim';
+                        farmingButton.classList.add('green');
+                        farmingButton.disabled = false;
+                    }
+                }, 1000);
+            }
+
+            function resetFarming() {
+                counter = 0;
+                const farmingButton = document.getElementById('farmingButton');
+                farmingButton.textContent = 'Farming';
+                farmingButton.classList.remove('green');
+            }
+        </script>
+    </main>
+
+    <div class="container">
+        <button id="farmingButton" onclick="startFarming()">Farming</button>
+    </div>
+
+    <footer>
+        <button onclick="alert('Home clicked!')">
+            <img src="https://i.imgur.com/Y9FEIUS.png" alt="Home">
+            Home
+        </button>
+        <button onclick="alert('Task clicked!')">
+            <img src="https://i.imgur.com/STN1RIF.png" alt="Task">
+            Task
+        </button>
+        <button onclick="alert('Friends clicked!')">
+            <img src="https://i.imgur.com/Cz5VhDN.png" alt="Friends">
+            Friends
+        </button>
+    </footer>
 </body>
 </html>
