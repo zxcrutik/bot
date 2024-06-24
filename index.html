@@ -112,7 +112,7 @@
 <body>
     <main>
         <div align="center">
-            <a href="https://ton.org/"><img width="100%" src="https://i.imgur.com/EhLZvNk.png" height="108"  alt="logo of telegram web apps"></a>
+            <a href="https://ton.org/"><img width="100%" src="https://i.imgur.com/EhLZvNk.png" height="108" alt="logo of telegram web apps"></a>
         </div>
 
         <div class="header">
@@ -150,7 +150,20 @@
             async function startFarming() {
                 const farmingButton = document.getElementById('farmingButton');
                 farmingButton.disabled = true;
-                await updateData(counter, true);
+
+                interval = setInterval(async () => {
+                    counter = parseFloat((counter + 0.01).toFixed(2));
+                    farmingButton.textContent = `Start Farming: ${counter.toFixed(2)} method`;
+
+                    if (counter >= 50) {
+                        clearInterval(interval);
+                        farmingButton.textContent = 'Claim';
+                        farmingButton.classList.add('green');
+                        farmingButton.disabled = false;
+                    }
+
+                    await updateData(counter, true);
+                }, 1000);
             }
 
             async function resetFarming() {
